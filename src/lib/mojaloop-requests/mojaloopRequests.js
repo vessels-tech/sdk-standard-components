@@ -26,8 +26,15 @@ const JwsSigner = require('../jws').signer;
 
 /**
  * A class for making outbound requests with mutually authenticated TLS and JWS signing
+ * 
  */
 class MojaloopRequests {
+
+    /**
+     * @description default constructor for MojaloopRequests class
+     * @param {*} config 
+     * @param {boolean} config.addHostHeader - If true, enables adding the Host header into the requests
+     */
     constructor(config) {
         this.config = config;
         this.logger = config.logger;
@@ -35,7 +42,7 @@ class MojaloopRequests {
         // FSPID of THIS DFSP
         this.dfspId = config.dfspId;
 
-        if(config.tls.mutualTLS.enabled) {
+        if (config.tls.mutualTLS.enabled) {
             this.agent = new https.Agent({
                 ...config.tls.outboundCreds,
                 keepAlive: true
@@ -127,7 +134,7 @@ class MojaloopRequests {
     async putQuotesError(quoteId, error, destFspId) {
         return this._put(`quotes/${quoteId}/error`, 'quotes', error, destFspId);
     }
-    
+
 
     /**
      * Executes a POST /transfers request for the specified transfer prepare
@@ -157,31 +164,55 @@ class MojaloopRequests {
     async putTransfersError(transferId, error, destFspId) {
         return this._put(`transfers/${transferId}/error`, 'transfers', error, destFspId);
     }
- 
+
+    /**
+     * @function _getHostHeader
+     * 
+     * @description A host header value based on a given resource type
+     * @param {*} resourceType 
+     */
+    _getHostHeader(resourceType) {
+        switch (resourceType) {
+            //TODO: fill these in
+            case 'parties':
+            case 'participants':
+                return 'account-lookup-service.local'
+            case 'quotes':
+                return 'quoting-service.local'
+            case 'transfers':
+                return 'ml-api-adapter.local'
+            default:
+                throw new Error(`Unknown header for resourceType: ${resourceType}`)
+        }
+    }
 
     /**
      * Utility function for building outgoing request headers as required by the mojaloop api spec
      *
      * @returns {object} - headers object for use in requests to mojaloop api endpoints
      */
-    _buildHeaders (method, resourceType, dest) {
+    _buildHeaders(method, resourceType, dest) {
         let headers = {
             'content-type': `application/vnd.interoperability.${resourceType}+json;version=1.0`,
             'date': new Date().toUTCString(),
             'fspiop-source': this.dfspId
         };
 
-        if(dest) {
+        if (dest) {
             headers['fspiop-destination'] = dest;
         }
 
+        if (this.config.addHostHeader) {
+            headers['Host'] = this._getHostHeader(resourceType)
+        }
+
         //Need to populate Bearer Token for WS02 if Sim is pointing to WS02
-        if(this.config.wso2BearerToken) {
+        if (this.config.wso2BearerToken) {
             headers['Authorization'] = `Bearer ${this.config.wso2BearerToken}`;
         }
 
         // dont add accept header to PUT requests
-        if(method.toUpperCase() !== 'PUT') {
+        if (method.toUpperCase() !== 'PUT') {
             headers['accept'] = `application/vnd.interoperability.${resourceType}+json;version=1.0`;
         }
 
@@ -196,17 +227,23 @@ class MojaloopRequests {
             headers: this._buildHeaders('GET', resourceType, dest),
             agent: this.agent,
             resolveWithFullResponse: true,
-            simple: false 
+            simple: false,
         };
 
         // Note we do not JWS sign requests with no body i.e. GET requests
 
+        console.log('GET', reqOpts)
+
         try {
-            this.logger.log(`Executing HTTP GET: ${util.inspect(reqOpts)}`);
+            // this.logger.log(`Executing HTTP GET: ${util.inspect(reqOpts)}`);
             return await request(reqOpts).then(throwOrJson);
         }
         catch (e) {
-            this.logger.log('Error attempting GET. URL:', url, 'Opts:', reqOpts, 'Error:', e);
+            // this.logger.log('Error attempting GET. URL:', url, 'Opts:', reqOpts, 'Error:', e);
+            console.log('Error attempting GET')
+            console.log('URL:', url)
+            console.log('Opts:', reqOpts)
+            console.log('Error:', e);
             throw e;
         }
     }
@@ -220,19 +257,28 @@ class MojaloopRequests {
             body: body,
             agent: this.agent,
             resolveWithFullResponse: true,
+            json: true,
             simple: false
         };
 
-        if(this.jwsSign) {
+        if (this.jwsSign) {
             this.jwsSigner.sign(reqOpts);
         }
 
+
+        console.log('PUT', reqOpts)
+
         try {
-            this.logger.log(`Executing HTTP PUT: ${util.inspect(reqOpts)}`);
+            // this.logger.log(`Executing HTTP PUT: ${util.inspect(reqOpts)}`);
             return await request(reqOpts).then(throwOrJson);
         }
         catch (e) {
-            this.logger.log('Error attempting PUT. URL:', url, 'Opts:', reqOpts, 'Body:', body, 'Error:', e);
+            // this.logger.log('Error attempting PUT. URL:', url, 'Opts:', reqOpts, 'Body:', body, 'Error:', e);
+            console.log('Error attempting PUT')
+            console.log('URL:', url)
+            console.log('Opts:', reqOpts)
+            console.log('Body:', body)
+            console.log('Error:', e);
             throw e;
         }
     }
@@ -246,19 +292,27 @@ class MojaloopRequests {
             body: body,
             agent: this.agent,
             resolveWithFullResponse: true,
-            simple: false
+            simple: false,
+            json: true
         };
 
-        if(this.jwsSign) {
+        if (this.jwsSign) {
             this.jwsSigner.sign(reqOpts);
         }
+
+        console.log('POST', reqOpts)
 
         try {
             this.logger.log(`Executing HTTP POST: ${util.inspect(reqOpts)}`);
             return await request(reqOpts).then(throwOrJson);
         }
         catch (e) {
-            this.logger.log('Error attempting POST. URL:', url, 'Opts:', reqOpts, 'Body:', body, 'Error:', e);
+            // this.logger.log('Error attempting POST. URL:', url, 'Opts:', reqOpts, 'Body:', body, 'Error:', e);
+            console.log('Error attempting POST')
+            console.log('URL:', url)
+            console.log('Opts:', reqOpts)
+            console.log('Body:', body)
+            console.log('Error:', e);
             throw e;
         }
     }
