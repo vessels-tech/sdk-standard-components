@@ -232,7 +232,8 @@ class MojaloopRequests {
 
         // Note we do not JWS sign requests with no body i.e. GET requests
 
-        console.log('GET', reqOpts)
+        // console.log('GET', reqOpts)
+        console.log('calling GET', reqOpts.uri)
 
         try {
             // this.logger.log(`Executing HTTP GET: ${util.inspect(reqOpts)}`);
@@ -265,8 +266,8 @@ class MojaloopRequests {
             this.jwsSigner.sign(reqOpts);
         }
 
-
-        console.log('PUT', reqOpts)
+        console.log('calling PUT', reqOpts.uri)
+        // console.log('PUT', reqOpts)
 
         try {
             // this.logger.log(`Executing HTTP PUT: ${util.inspect(reqOpts)}`);
@@ -300,10 +301,9 @@ class MojaloopRequests {
             this.jwsSigner.sign(reqOpts);
         }
 
-        console.log('POST', reqOpts)
-
+        console.log('calling POST', reqOpts.uri)
         try {
-            this.logger.log(`Executing HTTP POST: ${util.inspect(reqOpts)}`);
+            // this.logger.log(`Executing HTTP POST: ${util.inspect(reqOpts)}`);
             return await request(reqOpts).then(throwOrJson);
         }
         catch (e) {

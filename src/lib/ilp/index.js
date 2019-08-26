@@ -67,7 +67,7 @@ class Ilp {
             condition: generatedCondition
         };
 
-        this.logger.log(`Generated ILP: transaction object: ${util.inspect(transactionObject)}\nPacket input: ${util.inspect(packetInput)}\nOutput: ${util.inspect(ret)}`);
+        // this.logger.log(`Generated ILP: transaction object: ${util.inspect(transactionObject)}\nPacket input: ${util.inspect(packetInput)}\nOutput: ${util.inspect(ret)}`);
 
         return ret;
     }
