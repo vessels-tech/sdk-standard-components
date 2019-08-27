@@ -2,7 +2,7 @@
   "name": "@mojaloop/sdk-standard-components",
   "version": "0.0.39",
   "description": "An set of standard components for connecting to Mojaloop API enabled switches",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
