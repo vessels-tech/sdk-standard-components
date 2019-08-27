@@ -12,7 +12,7 @@
 
 const util = require('util');
 const test = require('ava');
-const Ilp = require('../lib/ilp');
+const Ilp = require('../src/lib/ilp');
 const IlpPacket = require('ilp-packet'); 
 
 
